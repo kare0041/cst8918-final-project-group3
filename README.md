@@ -118,6 +118,9 @@ Our solution is modular, secure, collaborative, and automated. The infrastructur
 
 ## 📸 Screenshots
 
+### Infra CI-CD Workflow
+![Infra CI-CD Workflow](screenshots/infra-ci-cd%20workflow.png)
+
 ### All Workflows
 ![All Workflows](screenshots/all%20workflows.png)
 
