@@ -18,9 +18,9 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ACR_NAME: ${{ vars.ACR_NAME }}                
+      ACR_NAME: ${{ vars.ACR_NAME }}
       ACR_LOGIN_SERVER: ${{ vars.ACR_LOGIN_SERVER }}
-      IMAGE_NAME: ${{ vars.IMAGE_NAME }}            
+      IMAGE_NAME: ${{ vars.IMAGE_NAME }}
 
     steps:
       - name: Checkout Code
@@ -33,19 +33,26 @@ jobs:
           tenant-id:  ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Who am I? (service principal details)
+        run: |
+          echo "CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}"
+          az ad sp show --id "${{ secrets.AZURE_CLIENT_ID }}" --query "{appId:appId, objectId:id, displayName:displayName}" -o json
+
       - name: Debug ACR & Azure context
         run: |
-          echo "ACR_NAME=$ACR_NAME"
-          echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER"
-          echo "IMAGE_NAME=$IMAGE_NAME"
+          echo "ACR_NAME=${ACR_NAME}"
+          echo "ACR_LOGIN_SERVER=${ACR_LOGIN_SERVER}"
+          echo "IMAGE_NAME=${IMAGE_NAME}"
           az account show --query "{subscription:id,name:name,tenant:tenantId}" -o json
-          az acr show -n "$ACR_NAME" --query "{name:name,loginServer:loginServer,id:id}" -o json
+          az acr show -n "${ACR_NAME}" --query "{name:name,loginServer:loginServer,id:id,sku:sku.name,publicNetworkAccess:publicNetworkAccess}" -o json
 
-      - name: ACR Docker Login (token-based)
+      - name: ACR data-plane check (list repos)
         run: |
-          set -e
-          TOKEN=$(az acr login --name "$ACR_NAME" --expose-token --output tsv --query accessToken)
-          echo "$TOKEN" | docker login "$ACR_LOGIN_SERVER" -u 00000000-0000-0000-0000-000000000000 --password-stdin
+          az acr repository list -n "${ACR_NAME}" -o tsv || true
+
+      - name: ACR Docker Login (classic)
+        run: |
+          az acr login --name "${ACR_NAME}"
 
       - name: Docker Build
         working-directory: ./application
@@ -60,4 +67,4 @@ jobs:
 
       - name: Docker Logout
         if: always()
-        run: docker logout "$ACR_LOGIN_SERVER"
+        run: docker logout "${ACR_LOGIN_SERVER}"
