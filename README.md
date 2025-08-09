@@ -118,6 +118,9 @@ Our solution is modular, secure, collaborative, and automated. The infrastructur
 
 ## 📸 Screenshots
 
+### All Workflows
+![All Workflows](screenshots/all%20workflows.png)
+
 ### All Checks Have Passed
 ![All Checks Have Passed](screenshots/all%20checks%20have%20passed.png)
 
