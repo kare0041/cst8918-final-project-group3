@@ -2,15 +2,11 @@ name: Build and Push Remix App
 
 on:
   pull_request:
-    branches:
-      - main
-    paths:
-      - 'application/**'
+    branches: [ main ]
+    paths: [ 'application/**' ]
   push:
-    branches:
-      - main
-    paths:
-      - 'application/**'
+    branches: [ main ]
+    paths: [ 'application/**' ]
 
 permissions:
   contents: read
@@ -21,32 +17,50 @@ jobs:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
 
+    # Prefer repo/environment Variables for non-secret values.
+    # If you stored them as Secrets instead, replace vars. with secrets.
     env:
-      ACR_NAME: ${{ vars.ACR_NAME }}
-      ACR_LOGIN_SERVER: ${{ vars.ACR_LOGIN_SERVER }}
-      IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+      ACR_NAME: ${{ vars.ACR_NAME }}                # e.g., grp3weatheracr
+      ACR_LOGIN_SERVER: ${{ vars.ACR_LOGIN_SERVER }}# e.g., grp3weatheracr.azurecr.io
+      IMAGE_NAME: ${{ vars.IMAGE_NAME }}            # e.g., grp3-weather-app
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Login to Azure
+      - name: Login to Azure (OIDC)
         uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          tenant-id:  ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        #   subscription-id: "45877b2c-82aa-41e4-8da1-8a4ebb66eaad"
 
-      - name: Login to ACR
-        run: az acr login --name $ACR_NAME
+      - name: Debug ACR & Azure context
+        run: |
+          echo "ACR_NAME=$ACR_NAME"
+          echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER"
+          echo "IMAGE_NAME=$IMAGE_NAME"
+          az account show --query "{subscription:id,name:name,tenant:tenantId}" -o json
+          az acr show -n "$ACR_NAME" --query "{name:name,loginServer:loginServer,id:id}" -o json
+
+      # Token-based Docker login to ACR (most reliable on GitHub runners)
+      - name: ACR Docker Login (token-based)
+        run: |
+          set -e
+          TOKEN=$(az acr login --name "$ACR_NAME" --expose-token --output tsv --query accessToken)
+          echo "$TOKEN" | docker login "$ACR_LOGIN_SERVER" -u 00000000-0000-0000-0000-000000000000 --password-stdin
 
       - name: Docker Build
+        working-directory: ./application
         run: |
-          docker build -t $ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }} ./application
+          docker build -t $ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }} .
           docker tag $ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }} $ACR_LOGIN_SERVER/$IMAGE_NAME:latest
 
       - name: Docker Push
         run: |
           docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}
           docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:latest
+
+      - name: Docker Logout
+        if: always()
+        run: docker logout $ACR_LOGIN_SERVER
