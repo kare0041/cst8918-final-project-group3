@@ -118,6 +118,9 @@ Our solution is modular, secure, collaborative, and automated. The infrastructur
 
 ## 📸 Screenshots
 
+### All Workflows
+![All Workflows](screenshots/all%20workflows.png)
+
 ### All Checks Have Passed
 ![All Checks Have Passed](screenshots/all%20checks%20have%20passed.png)
 
@@ -135,6 +138,12 @@ Our solution is modular, secure, collaborative, and automated. The infrastructur
 
 ### Build and Push Docker Image Workflow
 ![Build and Push Docker Image Workflow](screenshots/buil%20and%20push%20docker%20image%20workflow.png)
+
+### Deploy to AKS Prod
+![Deploy to AKS Prod](screenshots/Deploy%20to%20AKS%20prod.png)
+
+### Terraform Apply Workflow
+![Terraform Apply Workflow](screenshots/Terraform%20apply%20workflow.png)
 
 
 
