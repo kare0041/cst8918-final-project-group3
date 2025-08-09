@@ -5,12 +5,12 @@ on:
     branches:
       - main
     paths:
-      - 'grp3-weather-app/**'
+      - 'application/**'
   push:
     branches:
       - main
     paths:
-      - 'grp3-weather-app/**'
+      - 'application/**'
 
 env:
   IMAGE_NAME: ${{ vars.IMAGE_NAME }}
@@ -51,14 +51,14 @@ jobs:
 
       - name: Set Test Image
         run: |
-          sed -i "s|<IMAGE_PLACEHOLDER>|$ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}|g" grp3-weather-app/k8s/a01_deployment.yaml
+          sed -i "s|<IMAGE_PLACEHOLDER>|$ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}|g" application/k8s/a01_deployment.yaml
 
       - name: Deploy to Test
         run: |
-          kubectl apply -f grp3-weather-app/k8s/a01_namespace.yaml
-          kubectl apply -f grp3-weather-app/k8s/a01_secrets.yaml
-          kubectl apply -f grp3-weather-app/k8s/a01_deployment.yaml
-          kubectl apply -f grp3-weather-app/k8s/a01_service.yaml
+          kubectl apply -f application/k8s/a01_namespace.yaml
+          kubectl apply -f application/k8s/a01_secrets.yaml
+          kubectl apply -f application/k8s/a01_deployment.yaml
+          kubectl apply -f application/k8s/a01_service.yaml
 
   deploy-to-prod:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -90,11 +90,11 @@ jobs:
 
       - name: Set Prod Image
         run: |
-          sed -i "s|<IMAGE_PLACEHOLDER>|$ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}|g" grp3-weather-app/k8s/a01_deployment.yaml
+          sed -i "s|<IMAGE_PLACEHOLDER>|$ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}|g" application/k8s/a01_deployment.yaml
 
       - name: Deploy to Prod
         run: |
-          kubectl apply -f grp3-weather-app/k8s/a01_namespace.yaml
-          kubectl apply -f grp3-weather-app/k8s/a01_secrets.yaml
-          kubectl apply -f grp3-weather-app/k8s/a01_deployment.yaml
-          kubectl apply -f grp3-weather-app/k8s/a01_service.yaml
+          kubectl apply -f application/k8s/a01_namespace.yaml
+          kubectl apply -f application/k8s/a01_secrets.yaml
+          kubectl apply -f application/k8s/a01_deployment.yaml
+          kubectl apply -f application/k8s/a01_service.yaml
