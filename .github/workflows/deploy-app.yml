@@ -1,0 +1,100 @@
+name: Deploy Remix App to AKS
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'application/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'application/**'
+
+env:
+  IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+  ACR_LOGIN_SERVER: ${{ vars.ACR_LOGIN_SERVER }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-to-test:
+    if: github.event_name == 'pull_request'
+    name: Deploy to AKS Test
+    runs-on: ubuntu-latest
+    environment: test
+
+    env:
+      AKS_NAME: ${{ vars.AKS_NAME }}
+      AKS_RESOURCE_GROUP: ${{ vars.AKS_RESOURCE_GROUP }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS Credentials
+        run: |
+          az aks get-credentials \
+            --name $AKS_NAME \
+            --resource-group $AKS_RESOURCE_GROUP \
+            --overwrite-existing
+
+      - name: Set Test Image
+        run: |
+          sed -i "s|<IMAGE_PLACEHOLDER>|$ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}|g" application/k8s/a01_deployment.yaml
+
+      - name: Deploy to Test
+        run: |
+          kubectl apply -f application/k8s/a01_namespace.yaml
+          kubectl apply -f application/k8s/a01_secrets.yaml
+          kubectl apply -f application/k8s/a01_deployment.yaml
+          kubectl apply -f application/k8s/a01_service.yaml
+
+  deploy-to-prod:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: Deploy to AKS Prod
+    runs-on: ubuntu-latest
+    environment: production
+
+    env:
+      AKS_NAME: ${{ vars.AKS_NAME }}
+      AKS_RESOURCE_GROUP: ${{ vars.AKS_RESOURCE_GROUP }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS Credentials
+        run: |
+          az aks get-credentials \
+            --name $AKS_NAME \
+            --resource-group $AKS_RESOURCE_GROUP \
+            --overwrite-existing
+
+      - name: Set Prod Image
+        run: |
+          sed -i "s|<IMAGE_PLACEHOLDER>|$ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}|g" application/k8s/a01_deployment.yaml
+
+      - name: Deploy to Prod
+        run: |
+          kubectl apply -f application/k8s/a01_namespace.yaml
+          kubectl apply -f application/k8s/a01_secrets.yaml
+          kubectl apply -f application/k8s/a01_deployment.yaml
+          kubectl apply -f application/k8s/a01_service.yaml

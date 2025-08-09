@@ -118,28 +118,23 @@ Our solution is modular, secure, collaborative, and automated. The infrastructur
 
 ## 📸 Screenshots
 
-> Attach a screenshot here showing:
-- GitHub Actions runs for `terraform-static`, `terraform-plan`, `terraform-apply`
-- Successful deployments of test and prod environments
+### All Checks Have Passed
+![All Checks Have Passed](screenshots/all%20checks%20have%20passed.png)
 
----
+### Deploy AKS to Test Workflow
+![Deploy AKS to Test Workflow](screenshots/Deploy%20AKS%20to%20test%20workflow.png)
 
-## 🧹 Cleanup Instructions
+### Run TFLint Workflow
+![Run TFLint Workflow](screenshots/Run%20TFLint%20workflow.png)
 
-Once submitted, delete the deployed Azure resources to avoid unnecessary charges:
+### Terraform Plan Workflow
+![Terraform Plan Workflow](screenshots/Terraform%20plan%20workflow.png)
 
-```bash
-az group delete --name cst8918-final-project-group-<group-number>
-```
+### Terraform Static Tests Workflow
+![Terraform Static Tests Workflow](screenshots/Terraform%20static%20tests%20workflow.png)
 
-> ⚠️ Failure to clean up resources may result in **10% grade penalty**.
+### Build and Push Docker Image Workflow
+![Build and Push Docker Image Workflow](screenshots/buil%20and%20push%20docker%20image%20workflow.png)
 
----
 
-## 📬 Submission Info
 
-- ✅ Repository: [GitHub Project URL]
-- 🧑‍🏫 Professor invited: ✅ `@rlmckenney`
-- 📎 Submitted on Brightspace: ✅
-
----
